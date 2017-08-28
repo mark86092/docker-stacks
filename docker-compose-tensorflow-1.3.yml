@@ -1,0 +1,7 @@
+version: "2"
+services:
+    notebook:
+        image: mark86092/jupyter-notebook:tensorflow-1.3
+        build:
+            context: ./tensorflow-1.3-notebook
+            dockerfile: Dockerfile

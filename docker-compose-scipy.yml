@@ -1,0 +1,7 @@
+version: "2"
+services:
+    notebook:
+        image: mark86092/jupyter-notebook:scipy
+        build:
+            context: ./scipy-notebook
+            dockerfile: Dockerfile

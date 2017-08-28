@@ -1,0 +1,7 @@
+version: "2"
+services:
+    notebook:
+        image: mark86092/jupyter-notebook:minimal
+        build:
+            context: ./minimal-notebook
+            dockerfile: Dockerfile

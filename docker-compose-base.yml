@@ -1,0 +1,7 @@
+version: "2"
+services:
+    notebook:
+        image: mark86092/jupyter-notebook:base
+        build:
+            context: ./base-notebook
+            dockerfile: Dockerfile

@@ -1,7 +1,0 @@
-version: "2"
-services:
-    notebook:
-        image: mark86092/jupyter-notebook:pytorch
-        build:
-            context: ./pytorch-notebook
-            dockerfile: Dockerfile

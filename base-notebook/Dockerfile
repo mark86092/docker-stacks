@@ -5,7 +5,7 @@
 # https://github.com/docker-library/official-images/commit/0ea9b38b835ffb656c497783321632ec7f87b60c
 FROM nvidia/cuda
 
-MAINTAINER Jupyter Project <jupyter@googlegroups.com>
+LABEL maintainer="Jupyter Project <jupyter@googlegroups.com>"
 
 USER root
 
@@ -60,10 +60,10 @@ RUN mkdir /home/$NB_USER/work && \
     fix-permissions /home/$NB_USER
 
 # Install conda as jovyan and check the md5 sum provided on the download site
-ENV MINICONDA_VERSION 4.3.21
+ENV MINICONDA_VERSION 4.3.30
 RUN cd /tmp && \
     wget --quiet https://repo.continuum.io/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
-    echo "c1c15d3baba15bf50293ae963abef853 *Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c - && \
+    echo "0b80a152332a4ce5250f3c09589c7a81 *Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c - && \
     /bin/bash Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CONDA_DIR && \
     rm Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
     $CONDA_DIR/bin/conda config --system --prepend channels conda-forge && \
@@ -77,8 +77,11 @@ RUN cd /tmp && \
 RUN conda install --quiet --yes \
     'notebook=5.2.*' \
     'jupyterhub=0.8.*' \
-    'jupyterlab=0.28.*' \
+    'jupyterlab=0.30.*' \
     && conda clean -tipsy && \
+    jupyter labextension install @jupyterlab/hub-extension@^0.7.0 && \
+    npm cache clean && \
+    rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
     fix-permissions $CONDA_DIR
 
 USER root

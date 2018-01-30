@@ -4,6 +4,13 @@
 
 set -e
 
+# Exec the specified command or fall back on bash
+if [ $# -eq 0 ]; then
+    cmd=bash
+else
+    cmd=$*
+fi
+
 # Handle special flags if we're root
 if [ $(id -u) == 0 ] ; then
 
@@ -33,32 +40,37 @@ if [ $(id -u) == 0 ] ; then
         usermod -u $NB_UID $NB_USER
     fi
 
-    # Change GID of NB_USER to NB_GID if NB_GID is passed as a parameter
-    if [ "$NB_GID" ] ; then
+    # Change GID of NB_USER to NB_GID if it does not match
+    if [ "$NB_GID" != $(id -g $NB_USER) ] ; then
         echo "Set $NB_USER GID to: $NB_GID"
         groupmod -g $NB_GID -o $(id -g -n $NB_USER)
     fi
 
     # Enable sudo if requested
     if [[ "$GRANT_SUDO" == "1" || "$GRANT_SUDO" == 'yes' ]]; then
-        echo "Granting $NB_USER sudo access"
+        echo "Granting $NB_USER sudo access and appending $CONDA_DIR/bin to sudo PATH"
         echo "$NB_USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/notebook
     fi
 
-    # Exec the command as NB_USER
-    echo "Execute the command: $*"
-    exec su $NB_USER -c "env PATH=$PATH $*"
+    # Add $CONDA_DIR/bin to sudo secure_path
+    sed -ri "s#Defaults\s+secure_path=\"([^\"]+)\"#Defaults secure_path=\"\1:$CONDA_DIR/bin\"#" /etc/sudoers
+
+    # Exec the command as NB_USER with the PATH and the rest of
+    # the environment preserved
+    echo "Executing the command: $cmd"
+    exec sudo -E -H -u $NB_USER PATH=$PATH $cmd
 else
-  if [[ ! -z "$NB_UID" && "$NB_UID" != "$(id -u)" ]]; then
-      echo 'Container must be run as root to set $NB_UID'
-  fi
-  if [[ ! -z "$NB_GID" && "$NB_GID" != "$(id -g)" ]]; then
-      echo 'Container must be run as root to set $NB_GID'
-  fi
-  if [[ "$GRANT_SUDO" == "1" || "$GRANT_SUDO" == 'yes' ]]; then
-      echo 'Container must be run as root to grant sudo permissions'
-  fi
-    # Exec the command
-    echo "Execute the command: $*"
-    exec $*
+    if [[ ! -z "$NB_UID" && "$NB_UID" != "$(id -u)" ]]; then
+        echo 'Container must be run as root to set $NB_UID'
+    fi
+    if [[ ! -z "$NB_GID" && "$NB_GID" != "$(id -g)" ]]; then
+        echo 'Container must be run as root to set $NB_GID'
+    fi
+    if [[ "$GRANT_SUDO" == "1" || "$GRANT_SUDO" == 'yes' ]]; then
+        echo 'Container must be run as root to grant sudo permissions'
+    fi
+
+    # Execute the command
+    echo "Executing the command: $cmd"
+    exec $cmd
 fi

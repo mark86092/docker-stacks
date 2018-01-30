@@ -3,7 +3,7 @@
 
 FROM mark86092/jupyter-notebook:base
 
-MAINTAINER Jupyter Project <jupyter@googlegroups.com>
+LABEL maintainer="Jupyter Project <jupyter@googlegroups.com>"
 
 USER root
 

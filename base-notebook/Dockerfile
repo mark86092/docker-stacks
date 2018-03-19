@@ -50,10 +50,11 @@ ADD fix-permissions /usr/local/bin/fix-permissions
 RUN useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
     mkdir -p $CONDA_DIR && \
     chown $NB_USER:$NB_GID $CONDA_DIR && \
+    chmod g+w /etc/passwd /etc/group && \
     fix-permissions $HOME && \
     fix-permissions $CONDA_DIR
 
-USER $NB_USER
+USER $NB_UID
 
 # Setup work directory for backward-compatibility
 RUN mkdir /home/$NB_USER/work && \
@@ -71,18 +72,22 @@ RUN cd /tmp && \
     $CONDA_DIR/bin/conda config --system --set show_channel_urls true && \
     $CONDA_DIR/bin/conda update --all --quiet --yes && \
     conda clean -tipsy && \
-    fix-permissions $CONDA_DIR
+    rm -rf /home/$NB_USER/.cache/yarn && \
+    fix-permissions $CONDA_DIR && \
+    fix-permissions /home/$NB_USER
 
 # Install Jupyter Notebook and Hub
 RUN conda install --quiet --yes \
     'notebook=5.2.*' \
     'jupyterhub=0.8.*' \
-    'jupyterlab=0.30.*' \
+    'jupyterlab=0.31.*' \
     && conda clean -tipsy && \
-    jupyter labextension install @jupyterlab/hub-extension@^0.7.0 && \
+    jupyter labextension install @jupyterlab/hub-extension@^0.8.0 && \
     npm cache clean && \
     rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
-    fix-permissions $CONDA_DIR
+    rm -rf /home/$NB_USER/.cache/yarn && \
+    fix-permissions $CONDA_DIR && \
+    fix-permissions /home/$NB_USER
 
 USER root
 
@@ -101,4 +106,4 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 RUN fix-permissions /etc/jupyter/
 
 # Switch back to jovyan to avoid accidental container runs as root
-USER $NB_USER
+USER $NB_UID

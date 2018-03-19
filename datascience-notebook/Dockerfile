@@ -36,7 +36,7 @@ RUN mkdir /etc/julia && \
     chown $NB_USER $JULIA_PKGDIR && \
     fix-permissions $JULIA_PKGDIR
 
-USER $NB_USER
+USER $NB_UID
 
 # R packages including IRKernel which gets installed globally.
 RUN conda config --system --append channels r && \
@@ -58,7 +58,8 @@ RUN conda config --system --append channels r && \
     'r-crayon=1.3*' \
     'r-randomforest=4.6*' && \
     conda clean -tipsy && \
-    fix-permissions $CONDA_DIR
+    fix-permissions $CONDA_DIR && \
+    fix-permissions /home/$NB_USER
 
 # Add Julia packages
 # Install IJulia as jovyan and then move the kernelspec out
@@ -71,9 +72,6 @@ RUN julia -e 'Pkg.init()' && \
     julia -e 'Pkg.add("RDatasets")' && \
     julia -e 'Pkg.add("IJulia")' && \
     # Precompile Julia packages \
-    julia -e 'using HDF5' && \
-    julia -e 'using Gadfly' && \
-    julia -e 'using RDatasets' && \
     julia -e 'using IJulia' && \
     # move kernelspec out of home \
     mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernels/ && \

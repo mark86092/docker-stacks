@@ -12,14 +12,14 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-USER $NB_USER
+USER $NB_UID
 
 # Install Python 3 packages
 # Remove pyqt and qt pulled in for matplotlib since we're only ever going to
 # use notebook-friendly backends in these images
 RUN conda install --quiet --yes \
     'nomkl' \
-    'ipywidgets=7.0*' \
+    'ipywidgets=7.1*' \
     'pandas=0.19*' \
     'numexpr=2.6*' \
     'matplotlib=2.0*' \
@@ -47,10 +47,14 @@ RUN conda install --quiet --yes \
     # Activate ipywidgets extension in the environment that runs the notebook server
     jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
     # Also activate ipywidgets extension for JupyterLab
-    jupyter labextension install @jupyter-widgets/jupyterlab-manager@^0.31.0 && \
+    jupyter labextension install @jupyter-widgets/jupyterlab-manager@^0.33.1 && \
+    jupyter labextension install jupyterlab_bokeh@^0.4.0 && \
     npm cache clean && \
     rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
-    fix-permissions $CONDA_DIR
+    rm -rf /home/$NB_USER/.cache/yarn && \
+    rm -rf /home/$NB_USER/.node-gyp && \
+    fix-permissions $CONDA_DIR && \
+    fix-permissions /home/$NB_USER
 
 # Install facets which does not have a pip or conda package at the moment
 RUN cd /tmp && \
@@ -58,11 +62,12 @@ RUN cd /tmp && \
     cd facets && \
     jupyter nbextension install facets-dist/ --sys-prefix && \
     rm -rf facets && \
-    fix-permissions $CONDA_DIR
+    fix-permissions $CONDA_DIR && \
+    fix-permissions /home/$NB_USER
 
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
     fix-permissions /home/$NB_USER
 
-USER $NB_USER
+USER $NB_UID

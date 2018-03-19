@@ -15,7 +15,7 @@ RUN apt-get update && \
     gcc && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-USER $NB_USER
+USER $NB_UID
 
 # R packages
 RUN conda install --quiet --yes \
@@ -34,6 +34,9 @@ RUN conda install --quiet --yes \
     'r-rcurl=1.95*' \
     'r-crayon=1.3*' \
     'r-randomforest=4.6*' \
+    'r-htmltools=0.3*' \
+    'r-sparklyr=0.5*' \
+    'r-htmlwidgets=0.9*' \
     'r-hexbin=1.27*' && \
     conda clean -tipsy && \
     fix-permissions $CONDA_DIR

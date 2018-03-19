@@ -9,4 +9,5 @@ RUN conda install --quiet --yes \
     'tensorflow-gpu=1.5*' \
     'keras=2*' && \
     conda clean -tipsy && \
-    fix-permissions $CONDA_DIR
+    fix-permissions $CONDA_DIR && \
+    fix-permissions /home/$NB_USER
